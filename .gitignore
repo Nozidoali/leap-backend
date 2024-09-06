@@ -1,2 +1,4 @@
 abc.rc
 run.sh
+
+__pycache__
