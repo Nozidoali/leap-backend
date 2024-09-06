@@ -2,3 +2,5 @@ abc.rc
 run.sh
 
 __pycache__
+
+tmp.*
