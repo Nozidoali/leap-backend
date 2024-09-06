@@ -8,11 +8,7 @@ Last Modified by: Hanyu Wang
 Last Modified time: 2024-07-11 22:48:30
 """
 
-import logging
-
-logger = logging.getLogger(__name__)
-
-from .blif import *
+from ..blif import *
 
 import gurobipy as gp
 
@@ -41,7 +37,6 @@ class LPManager:
         self.__variables = variables
 
     def linkSubjectGraph(self, graph: BLIFGraph):
-        logger.info(f"Linking subject graph: {graph}")
         self.graph = graph
 
         # creating variables
@@ -148,7 +143,6 @@ class LPManager:
             for fanin in self.graph.node_fanins[signal]:
                 if self.solution[fanin] < label:
                     ri = fanin
-                    logger.debug(f"Inserting buffer between {fanin} and {signal}")
                     # self.graph.insert_buffer(fanin, signal)
                     numCycles = int(label - self.solution[fanin])
                     for i in range(numCycles):
