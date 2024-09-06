@@ -8,9 +8,6 @@ Last Modified by: Hanyu Wang
 Last Modified time: 2024-06-24 18:34:42
 """
 
-from ..common import *
-
-
 def printCutsStats(signal_to_cuts: dict):
     total_cut_count = 0
     cut_count_by_size = {}
@@ -28,8 +25,8 @@ def printCutsStats(signal_to_cuts: dict):
                 cut_count_by_size[cut_size] = 0
             cut_count_by_size[cut_size] += 1
 
-    print(f"Total cut count = {text_orange(total_cut_count)}")
-    print(f"Max cut count = {text_orange(max_cut_count)}")
+    print(f"Total cut count = {total_cut_count}")
+    print(f"Max cut count = {max_cut_count}")
     for cut_size in cut_count_by_size:
         print(f"Cut size {cut_size} count = {cut_count_by_size[cut_size]}")
 

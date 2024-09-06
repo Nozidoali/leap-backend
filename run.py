@@ -1,18 +1,23 @@
-from backend import read_blif, LPManager
+from backend import read_blif, LPManager, cutlessEnum
 
 def retime(inputFile, outputFile, clockPeriod):
     
     graph = read_blif(inputFile)
-    manager = LPManager()
-    manager.setClockPeriod(float(clockPeriod))
-    manager.linkSubjectGraph(graph)
-    manager.addObjective()
-    manager.solve()
-    manager.insertBuffers()
-    manager.dumpGraph(outputFile)
+    signal_to_cuts = cutlessEnum(graph)
     
-    latency = manager.getLatency()
-    print(int(latency))
+    for signal, cuts in signal_to_cuts.items():
+        print(signal, cuts)
+    
+    # manager = LPManager()
+    # manager.setClockPeriod(float(clockPeriod))
+    # manager.linkSubjectGraph(graph)
+    # manager.addObjective()
+    # manager.solve()
+    # manager.insertBuffers()
+    # manager.dumpGraph(outputFile)
+    
+    # latency = manager.getLatency()
+    # print(int(latency))
 
 if __name__ == "__main__":
     import argparse

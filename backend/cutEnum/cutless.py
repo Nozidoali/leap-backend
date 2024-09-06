@@ -8,24 +8,19 @@ Last Modified by: Hanyu Wang
 Last Modified time: 2024-06-24 18:40:38
 """
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 from .timingLabel import *
 from .cutExpansion import *
 from .cleanupDangling import *
 from ..blif import *
 
 
-def cutlessEnum(graph: BLIFGraph, params: dict = {}):
+def cutlessEnum(graph: BLIFGraph, params: dict = {}) -> dict:
     labels = {}
     signal_to_cuts = {}
     maxLeaves = params.get("maxLeaves", 6)
     maxExpLevel = params.get("maxExpLevel", 2)
 
     for signal in graph.topological_traversal():
-        logger.info(f"Processing signal {signal}")
         signal_to_cuts[signal] = []
 
         if graph.is_ci(signal):
