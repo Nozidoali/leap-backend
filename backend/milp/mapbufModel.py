@@ -1,9 +1,10 @@
 from ..blif import *
+from ..cute import *
 from .timingModel import TimingModel
 
 import gurobipy as gp
 
-class GraphModel(TimingModel):
+class MapBufModel(TimingModel):
     def __init__(self, blifGraph: BLIFGraph, dfg: dict, clockPeriod: float, params: dict = {}) -> None:
         super().__init__(clockPeriod)
         
@@ -21,11 +22,13 @@ class GraphModel(TimingModel):
         
         # assign index to signals
         self._assignSignalIndex(graph)
+        self._assignCutIndex(graph)
         self.model.update()
 
         # creating constraints
         for signal in self.signals:
             self.addTimingConstraintsAt(signal)
+            self.addCutSelectionConstraintsAt(signal)
 
         # PO must have the same l variables
         # TODO: this is conservative, we can relax this constraint
@@ -48,6 +51,7 @@ class GraphModel(TimingModel):
             self.model.addConstr(tIn >= dIn)  
 
         if self.graph.is_ci(signal):
+            # register's output are fine
             return
 
         idx = self.signal2idx[signal]
@@ -59,16 +63,26 @@ class GraphModel(TimingModel):
         
         self.model.addConstr(tOut <= self.tVar)
         self.model.addConstr(lOut <= self.lVar)
+        
+        cuts = self.signal2cuts[signal]
+        for i, cut in enumerate(cuts):
+            cutVar = self.model.getVarByName(f"c_{idx}_{i}")
+            
+            for fanin in cut:
+                assert fanin in self.signal2idx
+                fanin_idx = self.signal2idx[fanin]
 
-        for fanin in self.graph.node_fanins[signal]:
-            assert fanin in self.signal2idx
-            fanin_idx = self.signal2idx[fanin]
+                tIn = self.model.getVarByName(f"t_{fanin_idx}")
+                lIn = self.model.getVarByName(f"l_{fanin_idx}")
 
-            tIn = self.model.getVarByName(f"t_{fanin_idx}")
-            lIn = self.model.getVarByName(f"l_{fanin_idx}")
-
-            # NOTE: delay propagation constraints
-            self.model.addConstr(tOut + cp * lOut >= tIn + cp * lIn + dLUT)
+                # NOTE: delay propagation constraints
+                # tOut + cp * ( (lOut - lIn) or (1 - cutVar) ) >= tIn + dLUT
+                self.model.addConstr(tOut + cp * lOut + cp >= tIn + cp * lIn + cp * cutVar + dLUT)
+            
+    def addCutSelectionConstraintsAt(self, signal: str):
+        idx = self.signal2idx[signal]
+        cuts = self.signal2cuts[signal]
+        self.model.addConstr(gp.quicksum(self.model.getVarByName(f"c_{idx}_{i}") for i in range(len(cuts))) == 1)
 
     def addObjective(self):
         # ASAP scheduling
@@ -84,7 +98,17 @@ class GraphModel(TimingModel):
             self.signals.append(signal)
             self.signal2idx[signal] = idx
             self.createTimingLabel(idx)
-
+            
+    def _assignCutIndex(self, graph: BLIFGraph):
+        # TODO: handle the parameter of the cut enumeration
+        self.signal2cuts: dict = cutlessEnum(graph)
+        for signal, cuts in self.signal2cuts.items():
+            idx = self.signal2idx[signal]
+            
+            assert len(cuts) > 0
+            for i, cut in enumerate(cuts):
+                self.model.addVar(vtype=gp.GRB.BINARY, name=f"c_{idx}_{i}")
+        
     def insertBuffers(self):
         for signal in self.signals:
             if self.graph.is_ci(signal):
