@@ -17,3 +17,24 @@ Installation
 ```bash
 pip install -e .
 ```
+
+Examples
+--------
+
+```python
+if __name__ == "__main__":
+    from backend import *
+    
+    network = read_blif("./benchmarks/arithmetic/adder.blif")
+    print(network.num_nodes())
+    
+    model = MapBufModel(network, {}, 5, {
+        "lutDelay": 0.7,
+        "wireDelay": 0,
+        "inputDelay": 0,
+        "maxLeaves": 6
+    })
+    model.solve()
+    print(f"latency: {model.getLatency()}")
+    model.dumpGraph("adder.out.blif")
+```
