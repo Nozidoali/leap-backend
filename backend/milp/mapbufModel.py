@@ -1,5 +1,6 @@
 from ..blif import *
 from ..cute import *
+from ..map import *
 from .timingModel import TimingModel
 
 import gurobipy as gp
@@ -11,6 +12,7 @@ class MapBufModel(TimingModel):
         self.lutDelay = params.get("lutDelay", 0.7)
         self.wireDelay = params.get("wireDelay", 0)
         self.inputDelay = params.get("inputDelay", 0)
+        self.maxLeaves = params.get("maxLeaves", 6)
         self.loadDataflowGraph(dfg)
         self.loadSubjectGraph(blifGraph)
         
@@ -58,8 +60,8 @@ class MapBufModel(TimingModel):
 
         tOut = self.model.getVarByName(f"t_{idx}")
         lOut = self.model.getVarByName(f"l_{idx}")
-        cp = self.clockPeriod
         dLUT = self.lutDelay
+        cp = self.clockPeriod + dLUT # sufficient slack
         
         self.model.addConstr(tOut <= self.tVar)
         self.model.addConstr(lOut <= self.lVar)
@@ -78,7 +80,7 @@ class MapBufModel(TimingModel):
                 # NOTE: delay propagation constraints
                 # tOut + cp * ( (lOut - lIn) or (1 - cutVar) ) >= tIn + dLUT
                 self.model.addConstr(tOut + cp * lOut + cp >= tIn + cp * lIn + cp * cutVar + dLUT)
-            
+
     def addCutSelectionConstraintsAt(self, signal: str):
         idx = self.signal2idx[signal]
         cuts = self.signal2cuts[signal]
@@ -98,22 +100,21 @@ class MapBufModel(TimingModel):
             self.signals.append(signal)
             self.signal2idx[signal] = idx
             self.createTimingLabel(idx)
-            
+
     def _assignCutIndex(self, graph: BLIFGraph):
         # TODO: handle the parameter of the cut enumeration
-        self.signal2cuts: dict = cutlessEnum(graph)
+        self.signal2cuts: dict = cutlessEnum(graph, {"maxLeaves": self.maxLeaves})
         for signal, cuts in self.signal2cuts.items():
             idx = self.signal2idx[signal]
-            
             assert len(cuts) > 0
-            for i, cut in enumerate(cuts):
+            for i, _ in enumerate(cuts):
                 self.model.addVar(vtype=gp.GRB.BINARY, name=f"c_{idx}_{i}")
-        
+
     def insertBuffers(self):
         for signal in self.signals:
             if self.graph.is_ci(signal):
                 continue
-            label = self.solution[signal]
+            label = self.solution[signal]            
             new_fanins = []
             for fanin in self.graph.node_fanins[signal]:
                 if self.solution[fanin] < label:
@@ -137,5 +138,34 @@ class MapBufModel(TimingModel):
         return self.graph
 
     def dumpGraph(self, fileName: str):
+        signal2cut = self.dumpCuts()
+        self.graph = techmap(self.graph, signal2cut)
+        self.signals = self.graph.topological_traversal()
         self.insertBuffers()
         write_blif(self.graph, fileName)
+    
+    def dumpCuts(self):
+        signal2cut = {}
+        
+        # check the solution, and assign the cuts
+        for signal, cuts in self.signal2cuts.items():
+            if self.graph.is_ci(signal):
+                continue
+            idx = self.signal2idx[signal]
+            for i, cut in enumerate(cuts):
+                if self.solution[f"c_{idx}_{i}"] > 0.5:
+                    signal2cut[signal] = cut
+                    break
+    
+        return signal2cut
+    
+    def solve(self):
+        super().solve()
+        
+        # we need to store the cut selection
+        for signal, cuts in self.signal2cuts.items():
+            if self.graph.is_ci(signal):
+                continue
+            idx = self.signal2idx[signal]
+            for i, _ in enumerate(cuts):
+                self.solution[f"c_{idx}_{i}"] = self.model.getVarByName(f"c_{idx}_{i}").X
