@@ -5,7 +5,7 @@ This is the backend for the LEAP project. It contains the folloinwg necessary al
 - **blif** handles the read/write of BLIF files and provides interface to manipulate the logic network.
 - **cute** is a packge for cut enumeration.
 - **map** is the LUT mapping algorithm with Boolean simulation.
-- **milp** is contains several MILP models for timing regulation whose optimization is powered by Gurobi.
+- **milp** contains several MILP models for timing regulation whose optimization is powered by Gurobi.
 
 Installation
 ------------
@@ -25,7 +25,7 @@ Examples
 if __name__ == "__main__":
     from backend import *
     
-    network = read_blif("./benchmarks/arithmetic/adder.blif")
+    network = read_blif("./benchmarks/adder.blif")
     print(network.num_nodes())
     
     model = MapBufModel(network, {}, 5, {
@@ -36,5 +36,5 @@ if __name__ == "__main__":
     })
     model.solve()
     print(f"latency: {model.getLatency()}")
-    model.dumpGraph("adder.out.blif")
+    model.dumpGraph("adder.mapbuf.blif")
 ```
