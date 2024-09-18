@@ -1,5 +1,5 @@
 LEAP-Backend
-------------
+============
 
 This is the backend for the LEAP project. It contains the folloinwg necessary algorithms to process the subject graph.
 - **blif** handles the read/write of BLIF files and provides interface to manipulate the logic network.
@@ -8,7 +8,7 @@ This is the backend for the LEAP project. It contains the folloinwg necessary al
 - **milp** is contains several MILP models for timing regulation whose optimization is powered by Gurobi.
 
 Installation
-============
+------------
 
 1. (**recommended**) Download backend as a submodule of the main project.
 
