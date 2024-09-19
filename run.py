@@ -1,13 +1,14 @@
 from backend import read_blif, LPManager, cutlessEnum
 
+
 def retime(inputFile, outputFile, clockPeriod):
-    
+
     graph = read_blif(inputFile)
     signal_to_cuts = cutlessEnum(graph)
-    
+
     for signal, cuts in signal_to_cuts.items():
         print(signal, cuts)
-    
+
     # manager = LPManager()
     # manager.setClockPeriod(float(clockPeriod))
     # manager.linkSubjectGraph(graph)
@@ -15,9 +16,10 @@ def retime(inputFile, outputFile, clockPeriod):
     # manager.solve()
     # manager.insertBuffers()
     # manager.dumpGraph(outputFile)
-    
+
     # latency = manager.getLatency()
     # print(int(latency))
+
 
 if __name__ == "__main__":
     import argparse
@@ -28,4 +30,3 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--clock", help="Clock period")
     args = parser.parse_args()
     retime(args.input, args.output, args.clock)
-    

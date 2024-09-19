@@ -1,4 +1,3 @@
-
 import gurobipy as gp
 
 
@@ -28,16 +27,17 @@ class BasicModel:
 
     def getDepth(self):
         raise NotImplementedError
-    
+
     def getLatency(self):
         raise NotImplementedError
-    
+
     def _createModel(self):
         with gp.Env(empty=True) as env:
             env.setParam("OutputFlag", 0)
             env.start()
             self.model = gp.Model(env=env)
-            
+
+
 def constr2Str(model: gp.Model, constr: gp.Constr):
     output = None
     constrType = constr.Sense
@@ -50,7 +50,8 @@ def constr2Str(model: gp.Model, constr: gp.Constr):
     else:
         raise ValueError(f"Unknown constraint type: {constrType}")
     return output
-        
+
+
 def lpModel2Str(model: gp.Model):
     output = []
 

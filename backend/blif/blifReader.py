@@ -68,7 +68,7 @@ def on_gate(g: BLIFGraph, line: str, sop: list):
 
 
 def on_subckt(g: BLIFGraph, line: str):
-    
+
     module: str = line.split()[1].strip()
 
     try:

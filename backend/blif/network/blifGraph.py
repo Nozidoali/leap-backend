@@ -32,7 +32,7 @@ class BLIFGraphBase:
         #  - note that only nodes can be looked up in this dictionary
         #  - __signals are not safe when directly looked up
         self.node_fanins: dict = {}
-        
+
         # node_funcs return the function of a node
         #  - each func is a list of strings
         #  - each string is a minterm and the last character is the output
@@ -53,10 +53,10 @@ class BLIFGraphBase:
 
     def is_ri(self, signal: str) -> bool:
         return signal in self.register_inputs
-    
+
     def is_const0(self, signal: str) -> bool:
         return signal in self.const0
-    
+
     def is_const1(self, signal: str) -> bool:
         return signal in self.const1
 
@@ -146,13 +146,15 @@ class BLIFGraphBase:
                     self.node_fanouts[f].add(signal)
 
     # topological traversal, used to sort the __signals in a topological order
-    def trav_rec(self, signal: str, pending_signals: set = set(), visited_signals: set = set()):
+    def trav_rec(
+        self, signal: str, pending_signals: set = set(), visited_signals: set = set()
+    ):
         if signal in self.__signals:
             return
 
         if signal in visited_signals:
             return
-        
+
         # print(f"number of visited signals: {len(visited_signals)}", end="\r")
         visited_signals.add(signal)
 

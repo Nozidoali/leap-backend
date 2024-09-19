@@ -3,22 +3,25 @@ from .timingModel import TimingModel
 
 import gurobipy as gp
 
+
 class GraphModel(TimingModel):
-    def __init__(self, blifGraph: BLIFGraph, dfg: dict, clockPeriod: float, params: dict = {}) -> None:
+    def __init__(
+        self, blifGraph: BLIFGraph, dfg: dict, clockPeriod: float, params: dict = {}
+    ) -> None:
         super().__init__(clockPeriod)
-        
+
         self.lutDelay = params.get("lutDelay", 0.7)
         self.wireDelay = params.get("wireDelay", 0)
         self.inputDelay = params.get("inputDelay", 0)
         self.loadDataflowGraph(dfg)
         self.loadSubjectGraph(blifGraph)
-        
+
     def loadDataflowGraph(self, dfg):
         self.dfg = dfg
-    
+
     def loadSubjectGraph(self, graph: BLIFGraph):
         self.graph = graph
-        
+
         # assign index to signals
         self._assignSignalIndex(graph)
         self.model.update()
@@ -30,7 +33,9 @@ class GraphModel(TimingModel):
         # PO must have the same l variables
         # TODO: this is conservative, we can relax this constraint
         for po in graph.pos():
-            self.model.addConstr(self.model.getVarByName(f"l_{self.signal2idx[po]}") == self.lVar)
+            self.model.addConstr(
+                self.model.getVarByName(f"l_{self.signal2idx[po]}") == self.lVar
+            )
 
         # clock period constraint
         self.model.addConstr(self.tVar <= self.clockPeriod)
@@ -43,9 +48,9 @@ class GraphModel(TimingModel):
         if self.graph.is_pi(signal):
             tIn = self.model.getVarByName(f"t_{self.signal2idx[signal]}")
             dIn = self.inputDelay
-            
+
             # usually the PIs need a long wire delay
-            self.model.addConstr(tIn >= dIn)  
+            self.model.addConstr(tIn >= dIn)
 
         if self.graph.is_ci(signal):
             return
@@ -56,7 +61,7 @@ class GraphModel(TimingModel):
         lOut = self.model.getVarByName(f"l_{idx}")
         cp = self.clockPeriod
         dLUT = self.lutDelay
-        
+
         self.model.addConstr(tOut <= self.tVar)
         self.model.addConstr(lOut <= self.lVar)
 
@@ -72,11 +77,16 @@ class GraphModel(TimingModel):
 
     def addObjective(self):
         # ASAP scheduling
-        self.model.setObjective(gp.quicksum(self.model.getVarByName(f"l_{idx}") for idx in range(len(self.signals))), gp.GRB.MINIMIZE)
-        
+        self.model.setObjective(
+            gp.quicksum(
+                self.model.getVarByName(f"l_{idx}") for idx in range(len(self.signals))
+            ),
+            gp.GRB.MINIMIZE,
+        )
+
         # Latency minimization
         # self.model.setObjective(self.__latency_variable, gp.GRB.MINIMIZE)
-        
+
     def _assignSignalIndex(self, graph: BLIFGraph):
         self.signals = []
         self.signal2idx = {}

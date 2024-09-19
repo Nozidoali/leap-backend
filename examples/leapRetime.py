@@ -1,7 +1,8 @@
 from lp import *
 
+
 def retime(inputFile, outputFile, clockPeriod):
-    
+
     graph = read_blif(inputFile)
     manager = LPManager()
     manager.setClockPeriod(float(clockPeriod))
@@ -11,9 +12,10 @@ def retime(inputFile, outputFile, clockPeriod):
     manager.solve()
     manager.insertBuffers()
     manager.dumpGraph(outputFile)
-    
+
     latency = manager.getLatency()
     print(int(latency))
+
 
 if __name__ == "__main__":
     import argparse

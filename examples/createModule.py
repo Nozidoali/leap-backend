@@ -35,7 +35,15 @@ def pipeline(n_stages):
 
 
 def unit(unit_type):
-    assert unit_type in ["adder", "multiplier", "modulo", "divider", "mac", "square", "cube"]
+    assert unit_type in [
+        "adder",
+        "multiplier",
+        "modulo",
+        "divider",
+        "mac",
+        "square",
+        "cube",
+    ]
     op = None
     if unit_type == "adder":
         op = "+"
@@ -45,7 +53,7 @@ def unit(unit_type):
         op = "%"
     elif unit_type == "divider":
         op = "/"
-        
+
     elif unit_type == "mac":
         return f"""
     always @(*) begin
@@ -92,6 +100,7 @@ module {unit_type}(
 endmodule
         """
         )
+
 
 if __name__ == "__main__":
     args = parser.parse_args()

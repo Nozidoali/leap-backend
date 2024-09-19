@@ -28,11 +28,13 @@ def getAbcInfoFrom(logFile: str) -> list:
                 datas.append(data)
     return datas
 
+
 if __name__ == "__main__":
 
     import argparse
-    parser = argparse.ArgumentParser(description='Get ABC info from log file.')
-    parser.add_argument('logFile', type=str, help='log file')
+
+    parser = argparse.ArgumentParser(description="Get ABC info from log file.")
+    parser.add_argument("logFile", type=str, help="log file")
     datas = getAbcInfoFrom(parser.parse_args().logFile)
     print(datas[0]["lev"])
     print(datas[0]["node"])

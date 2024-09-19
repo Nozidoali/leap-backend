@@ -13,23 +13,21 @@ from .basicModel import BasicModel
 
 import gurobipy as gp
 
+
 class TimingModel(BasicModel):
     """
     This is the base class of all the timing models
     The model itself does not have any constraints
     """
+
     def __init__(self, clockPeriod: float) -> None:
         super().__init__(clockPeriod)
         self._createGlobalVariables()
 
     def _createGlobalVariables(self):
         # global variables
-        self.tVar = self.model.addVar(
-            vtype=gp.GRB.CONTINUOUS, name="cp", lb=0
-        )
-        self.lVar = self.model.addVar(
-            vtype=gp.GRB.CONTINUOUS, name="latency", lb=0
-        )
+        self.tVar = self.model.addVar(vtype=gp.GRB.CONTINUOUS, name="cp", lb=0)
+        self.lVar = self.model.addVar(vtype=gp.GRB.CONTINUOUS, name="latency", lb=0)
 
     def solve(self):
         super().solve()
@@ -42,7 +40,6 @@ class TimingModel(BasicModel):
 
     def getDepth(self):
         return self.depth
-    
+
     def getLatency(self):
         return self.latency
-

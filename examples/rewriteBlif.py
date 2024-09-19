@@ -1,4 +1,3 @@
-
 def rewriteBlif(inputFile: str, outputFile: str):
     """
     Carmine's code (31.05.2024)
@@ -41,6 +40,7 @@ def rewriteBlif(inputFile: str, outputFile: str):
             f.write(line + "\n")
     # graph = read_blif(inputFile)
     # write_blif(graph, outputFile)
+
 
 if __name__ == "__main__":
     import argparse
