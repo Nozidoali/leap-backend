@@ -1,16 +1,8 @@
-#!/usr/bin/env python
-# -*- encoding=utf8 -*-
-
-"""
-Author: Hanyu Wang
-Created time: 2024-06-24 18:02:11
-Last Modified by: Hanyu Wang
-Last Modified time: 2024-06-24 18:05:00
-"""
+from typing import Dict, List
 
 
-def cleanupDanglingCuts(old_cuts: dict) -> dict:
-    new_cuts: dict = {}
+def cleanupDanglingCuts(old_cuts: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    new_cuts: Dict[str, List[str]] = {}
     for signal in old_cuts:
         if len(old_cuts[signal]) == 0:
             continue

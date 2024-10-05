@@ -1,0 +1,10 @@
+.model add
+.inputs a b c
+.outputs d e
+.names a b n1
+11 1
+.names n1 c d
+00 1
+.names e
+1
+.end

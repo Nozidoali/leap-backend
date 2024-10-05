@@ -4,7 +4,7 @@ import gurobipy as gp
 class BasicModel:
     def __init__(self, clockPeriod: float) -> None:
         self._createModel()
-
+        self.model: gp.Model
         self.clockPeriod = clockPeriod
         self.__instructions = []
 
@@ -35,7 +35,7 @@ class BasicModel:
         with gp.Env(empty=True) as env:
             env.setParam("OutputFlag", 0)
             env.start()
-            self.model = gp.Model(env=env)
+            self.model: gp.Model = gp.Model(env=env)
 
 
 def constr2Str(model: gp.Model, constr: gp.Constr):

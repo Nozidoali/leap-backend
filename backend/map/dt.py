@@ -1,24 +1,23 @@
 import pygraphviz as pgv
+from dataclasses import dataclass
+from typing import List
 
 
+@dataclass
 class DNode:
-    def __init__(self) -> None:
-        self.trueBranch = None
-        self.falseBranch = None
-        self.idx = None
-        self.value = None
+    idx: int = 0
+    trueBranch = None
+    falseBranch = None
 
 
+@dataclass
 class TNode(DNode):
-    def __init__(self) -> None:
-        super().__init__()
-        self.value = 1
+    value: int = 1
 
 
+@dataclass
 class FNode(DNode):
-    def __init__(self) -> None:
-        super().__init__()
-        self.value = 0
+    value: int = 0
 
 
 class DTree:
@@ -62,59 +61,48 @@ class DTree:
             graph.add_edge(str(id(node)), str(id(node.falseBranch)), label="0")
 
     def getVal(self, index: int) -> bool:
-        return self.getValRec(self.root, index)
+        return self._getValRec(self.root, index)
 
-    def getValRec(self, node: DNode, index: int) -> bool:
+    def _getValRec(self, node: DNode, index: int) -> bool:
         if isinstance(node, TNode):
             return True
         if isinstance(node, FNode):
             return False
         tf = (index >> node.idx) & 1
         if tf:
-            return self.getValRec(node.trueBranch, index)
+            return self._getValRec(node.trueBranch, index)
         else:
-            return self.getValRec(node.falseBranch, index)
+            return self._getValRec(node.falseBranch, index)
 
 
-def sopToTree(terms: list, val: bool, numInputs) -> DTree:
+def sopToTree(terms: List[str], val: bool, numInputs) -> DTree:
     dt = DTree()
     dt.root = sopToTreeRec(terms, val)
     dt.numInputs = numInputs
     return dt
 
 
-def sopToTreeRec(terms: list, val: bool) -> DNode:
+def sopToTreeRec(terms: List[str], val: bool) -> DNode:
     if len(terms) == 0:
         return FNode() if val else TNode()
-    # TODO: entropy calculation
-    pivot: int = mostInformativeIdx(terms)
-
+    pivot: int = _mostInformativeIdx(terms)
     if pivot == -1:
         return TNode() if val else FNode()
-
     # print(f"terms: {terms}, pivot: {pivot}")
     node = DNode()
     node.idx = pivot
-
     trueTerms = list(
         set([x[:pivot] + "-" + x[pivot + 1 :] for x in terms if x[pivot] != "0"])
     )
     falseTerms = list(
         set([x[:pivot] + "-" + x[pivot + 1 :] for x in terms if x[pivot] != "1"])
     )
-
     node.trueBranch = sopToTreeRec(trueTerms, val)
     node.falseBranch = sopToTreeRec(falseTerms, val)
-
     return node
 
 
-def invert(terms: list) -> list:
-    # convert terms to a bdd
-    dt = DTree()
-
-
-def mostInformativeIdx(terms: list) -> int:
+def _mostInformativeIdx(terms: List[str]) -> int:
     # calculate the entropy of each variable
     # return the variable with the highest entropy
     import math
@@ -135,5 +123,4 @@ def mostInformativeIdx(terms: list) -> int:
         if entropy > bestEntropy:
             bestEntropy = entropy
             bestIdx = i
-
     return bestIdx

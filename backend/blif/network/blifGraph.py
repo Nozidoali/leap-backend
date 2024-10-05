@@ -7,38 +7,39 @@ Created time: 2024-05-22 14:47:44
 Last Modified by: Hanyu Wang
 Last Modified time: 2024-05-22 14:55:36
 """
+from typing import List, Dict
 
 
 class BLIFGraphBase:
     def __init__(self):
         self.top_module = ""
-        self.inputs = []
-        self.outputs = []
-        self.nodes = []
-        self.register_inputs = []
-        self.register_outputs = []
-        self.ro_to_ri: dict = {}
+        self.inputs: List[str] = []
+        self.outputs: List[str] = []
+        self.nodes: List[str] = []
+        self.register_inputs: List[str] = []
+        self.register_outputs: List[str] = []
+        self.ro_to_ri: Dict[str, str] = {}
 
-        self.ro_types: dict = {}
+        self.ro_types: Dict[str, str] = {}
 
         # __signals is a list of all the nodes in the network in the topological order
         # this is private and should not be modified directly
-        self.__signals = []
+        self.__signals: List[str] = []
 
-        self.const0 = []
-        self.const1 = []
+        self.const0: List[str] = []
+        self.const1: List[str] = []
 
         # node fanins return the set of fanins of a node
         #  - note that only nodes can be looked up in this dictionary
         #  - __signals are not safe when directly looked up
-        self.node_fanins: dict = {}
+        self.__node_fanins: Dict[str, List[str]] = {}
 
         # node_funcs return the function of a node
         #  - each func is a list of strings
         #  - each string is a minterm and the last character is the output
-        self.node_funcs: dict = {}
+        self.node_funcs: Dict[str, List[str]] = {}
 
-        self.node_fanouts: dict = {}
+        self.node_fanouts: Dict[str, List[str]] = {}
 
         self.submodules = {}
 
@@ -115,13 +116,19 @@ class BLIFGraphBase:
     def ros(self):
         return self.register_outputs
 
-    def fanins(self, signal: str):
-        return self.node_fanins[signal]
+    def fanins(self, signal: str) -> List[str]:
+        return self.__node_fanins[signal][:]
 
-    def get_nodes(self):
+    def has_fanin(self, signal: str) -> bool:
+        return signal in self.__node_fanins
+
+    def set_fanins(self, signal: str, fanins: List[str]):
+        self.__node_fanins[signal] = fanins
+
+    def get_nodes(self) -> List[str]:
         return self.nodes
 
-    def get_signals(self):
+    def get_signals(self) -> List[str]:
         return self.__signals
 
     # sort __signals in a topological order
@@ -137,13 +144,13 @@ class BLIFGraphBase:
             self.trav_rec(signal, set(), visited_signals)
 
         for signal in self.__signals:
-            self.node_fanouts[signal] = set()
+            self.node_fanouts[signal] = []
 
         # prepare fanouts: this should be recomputed after each network modification
         for signal in self.__signals:
-            if signal in self.node_fanins:
+            if signal in self.__node_fanins:
                 for f in self.fanins(signal):
-                    self.node_fanouts[f].add(signal)
+                    self.node_fanouts[f].append(signal)
 
     # topological traversal, used to sort the __signals in a topological order
     def trav_rec(
@@ -158,8 +165,8 @@ class BLIFGraphBase:
         # print(f"number of visited signals: {len(visited_signals)}", end="\r")
         visited_signals.add(signal)
 
-        if signal not in self.node_fanins:
-            raise ValueError(f"node {signal} not in node_fanins")
+        if signal not in self.__node_fanins:
+            raise ValueError(f"node {signal} not in __node_fanins")
 
         pending_signals.add(signal)
 
@@ -212,12 +219,12 @@ class BLIFGraphBase:
         assert name not in self.const1 and "the constant 1 to create already exists"
         self.const1.append(name)
 
-    def create_node(self, name: str, fanins: list, func: list):
+    def create_node(self, name: str, fanins: List[str], func: List[str]):
         assert name not in self.nodes and "the node to create already exists"
         self.nodes.append(name)
-        self.node_fanins[name] = list(fanins)[:]  # deep copy
+        self.__node_fanins[name] = fanins[:]  # deep copy
         self.node_funcs[name] = func[:]  # deep copy
-        self.node_fanouts[name] = set()
+        self.node_fanouts[name] = []
 
     def create_and(self, f1: str, f2: str, name: str):
         self.create_node(name=name, fanins=[f1, f2], func=["11 1"])
@@ -235,8 +242,8 @@ class BLIFGraphBase:
         self.ro_types[ro] = type
 
     def substitute_fanin(self, signal: str, old_fanin: str, new_fanin: str):
-        self.node_fanins[signal] = [
-            new_fanin if x == old_fanin else x for x in self.node_fanins[signal]
+        self.__node_fanins[signal] = [
+            new_fanin if x == old_fanin else x for x in self.__node_fanins[signal]
         ]
 
     def __repr__(self) -> str:
@@ -255,7 +262,7 @@ class BLIFGraphBase:
         new_graph.__signals = self.__signals.copy()
         new_graph.const0 = self.const0.copy()
         new_graph.const1 = self.const1.copy()
-        new_graph.node_fanins = self.node_fanins.copy()
+        new_graph.__node_fanins = self.__node_fanins.copy()
         new_graph.node_funcs = self.node_funcs.copy()
         new_graph.node_fanouts = self.node_fanouts.copy()
         new_graph.submodules = self.submodules.copy()

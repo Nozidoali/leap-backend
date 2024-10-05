@@ -8,6 +8,7 @@ Last Modified by: Hanyu Wang
 Last Modified time: 2023-03-11 20:05:38
 """
 
+from typing import List, Dict
 import os
 from .network.blif import *
 
@@ -101,7 +102,7 @@ def read_blif_impl(graph: BLIFGraph, filename: str) -> None:
     if os.path.exists(filename) == False:
         raise FileNotFoundError(f"File {filename} not found")
 
-    modules: dict = {}
+    modules: Dict[str, List[str]] = {}
     module: str = ""
     with open(filename, "r") as f:
         for line in f:

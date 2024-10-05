@@ -45,6 +45,8 @@ class MapBufModel(TimingModel):
         # clock period constraint
         self.model.addConstr(self.tVar <= self.clockPeriod)
 
+        self._addObjective()
+
     def createTimingLabel(self, idx: str):
         self.model.addVar(vtype=gp.GRB.INTEGER, name=f"l_{idx}", lb=0)
         self.model.addVar(vtype=gp.GRB.CONTINUOUS, name=f"t_{idx}", lb=0)
@@ -98,7 +100,7 @@ class MapBufModel(TimingModel):
             == 1
         )
 
-    def addObjective(self):
+    def _addObjective(self):
         # ASAP scheduling
         self.model.setObjective(
             gp.quicksum(
@@ -127,13 +129,13 @@ class MapBufModel(TimingModel):
             for i, _ in enumerate(cuts):
                 self.model.addVar(vtype=gp.GRB.BINARY, name=f"c_{idx}_{i}")
 
-    def insertBuffers(self):
+    def _insertBuffers(self):
         for signal in self.signals:
             if self.graph.is_ci(signal):
                 continue
             label = self.solution[signal]
             new_fanins = []
-            for fanin in self.graph.node_fanins[signal]:
+            for fanin in self.graph.fanins(signal):
                 if self.solution[fanin] < label:
                     ri = fanin
                     # self.graph.insert_buffer(fanin, signal)
@@ -146,7 +148,7 @@ class MapBufModel(TimingModel):
                     new_fanins.append(ri)
                 else:
                     new_fanins.append(fanin)
-            self.graph.node_fanins[signal] = set(new_fanins)
+            self.graph.set_fanins(signal, new_fanins)
 
         # update the graph
         self.graph.traverse()
@@ -158,7 +160,7 @@ class MapBufModel(TimingModel):
         signal2cut = self.dumpCuts()
         self.graph = techmap(self.graph, signal2cut)
         self.signals = self.graph.topological_traversal()
-        self.insertBuffers()
+        self._insertBuffers()
         write_blif(self.graph, fileName)
 
     def dumpCuts(self):

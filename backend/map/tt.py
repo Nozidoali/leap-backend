@@ -1,13 +1,15 @@
+from typing import List
+
 from .dt import *
 
 
-def getTT(dt: DTree) -> list:
+def getTT(dt: DTree) -> List[bool]:
     # convert the decision tree to a truth table
     n: int = 2**dt.numInputs
     return [dt.getVal(i) for i in range(n)]
 
 
-def fromTT(tt: list) -> DTree:
+def fromTT(tt: List[bool]) -> DTree:
     # convert the truth table to a decision tree
     import math
 
@@ -22,21 +24,25 @@ def fromTT(tt: list) -> DTree:
     return dt
 
 
-def ttFalse(n: int) -> list:
+def ttFalse(n: int) -> List[bool]:
     return [False] * (2**n)
 
 
-def ttTrue(n: int) -> list:
+def ttTrue(n: int) -> List[bool]:
     return [True] * (2**n)
 
 
-def ttAnd(a: list, b: list) -> list:
+def ttAnd(a: List[bool], b: List[bool]) -> List[bool]:
     return [x and y for x, y in zip(a, b)]
 
 
-def ttOr(a: list, b: list) -> list:
+def ttOr(a: List[bool], b: List[bool]) -> List[bool]:
     return [x or y for x, y in zip(a, b)]
 
 
-def ttNot(a: list) -> list:
+def ttNot(a: List[bool]) -> List[bool]:
     return [not x for x in a]
+
+
+def ttStr(tt: List[bool]) -> str:
+    return "".join(["1" if x else "0" for x in tt])

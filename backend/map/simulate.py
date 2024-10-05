@@ -1,49 +1,59 @@
+from dataclasses import dataclass, field
+from typing import List
+
 from .dt import *
 from .tt import *
 from ..blif import *
 
 
+@dataclass
 class BasicFunc:
-    def __init__(self, n_inputs: int) -> None:
-        self.n_inputs = n_inputs
-        self.terms = []
-        self.value = None
+    n_inputs: int
+    terms: List[str] = field(default_factory=list)
+    value: int = None
 
     @property
     def sop(self):
         return [f"{x} {self.value}" for x in self.terms]
 
+    @property
+    def tt(self):
+        return ttStr(getTT(sopToTree(self.terms, self.value, self.n_inputs)))
 
+
+@dataclass
 class Constant0(BasicFunc):
-    def __init__(self, n_inputs: int) -> None:
-        super().__init__(n_inputs)
-        self.terms = ["-" * n_inputs]
+    def __post_init__(self):
+        self.terms = ["-" * self.n_inputs]
         self.value = 0
 
 
+@dataclass
 class Constant1(BasicFunc):
-    def __init__(self, n_inputs: int) -> None:
-        super().__init__(n_inputs)
-        self.terms = ["-" * n_inputs]
+    def __post_init__(self):
+        self.terms = ["-" * self.n_inputs]
         self.value = 1
 
 
+@dataclass
 class Wire(BasicFunc):
-    def __init__(self, n_inputs: int, index: int) -> None:
-        super().__init__(n_inputs)
-        self.index = index
-        self.terms = [f"{'-'*index}1{'-'*(n_inputs-index-1)}"]
+    index: int = None
+
+    def __post_init__(self):
+        self.terms = [f"{'-' * self.index}1{'-' * (self.n_inputs - self.index - 1)}"]
         self.value = 1
 
 
+@dataclass
 class LUTFunc(BasicFunc):
-    def __init__(self, n_inputs: int, terms: list, value: int) -> None:
-        super().__init__(n_inputs)
-        self.terms = terms[:]
-        self.value = value
+    terms: List[str]
+    value: int
+
+    def __post_init__(self):
+        self.terms = self.terms[:]
 
 
-def readFunc(sop: list) -> BasicFunc:
+def readFunc(sop: List[str]) -> BasicFunc:
     n_inputs = len(sop[0].split()[0])
     func = BasicFunc(n_inputs)
     func.terms = [x.split()[0] for x in sop]
@@ -87,11 +97,11 @@ def mergeFunc(func: BasicFunc, fanins: list, verbose: bool = False) -> LUTFunc:
     return LUTFunc(numInputs, terms, value)
 
 
-def simulate(graph: BLIFGraph, signal: str, cut: list) -> LUTFunc:
+def simulate(graph: BLIFGraph, signal: str, cut: List[str]) -> LUTFunc:
     if signal in cut:
         # get the position of the signal in the cut
         idx = cut.index(signal)
-        newFunc = Wire(len(cut), idx)
+        newFunc = Wire(len(cut), index=idx)
     elif graph.is_const0(signal):
         newFunc = Constant0(len(cut))
     elif graph.is_const1(signal):
@@ -101,5 +111,6 @@ def simulate(graph: BLIFGraph, signal: str, cut: list) -> LUTFunc:
         func: BasicFunc = readFunc(graph.funcOf(signal))
         faninFuncs = [simulate(graph, fanin, cut) for fanin in graph.fanins(signal)]
         newFunc: LUTFunc = mergeFunc(func, faninFuncs)
+        # print(f"signal: {signal}, cut: {cut}, func: {func.tt}, fanins: {[x.tt for x in faninFuncs]}, newFunc: {newFunc.tt}")
     # print(f"signal: {signal}, cut: {cut}, func: {newFunc.sop}")
     return newFunc

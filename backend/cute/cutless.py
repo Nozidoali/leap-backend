@@ -92,7 +92,7 @@ def optCutExpansion(
         for label, leaf in arrival_times:
             if label == maximum_timing_label:
                 # the leaf is on the critical path, but we cannot expand it
-                if leaf not in graph.node_fanins:
+                if graph.has_fanin(leaf):
                     done = True
                     break
                 leaves_to_expand.add(leaf)

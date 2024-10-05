@@ -1,26 +1,30 @@
+from typing import List, Dict
 from ..blif import *
 from .simulate import *
 
 
-def mapNode(graph: BLIFGraph, mapped: BLIFGraph, signal2cut: dict):
+def mapNode(graph: BLIFGraph, mapped: BLIFGraph, signal2cut: Dict[str, List[str]]):
     for signal in graph.cos():
-        mapNodeRec(graph, mapped, signal2cut, signal)
+        _mapNodeRec(graph, mapped, signal2cut, signal)
 
 
-def mapNodeRec(graph: BLIFGraph, mapped: BLIFGraph, signal2cut: dict, signal: str):
+def _mapNodeRec(
+    graph: BLIFGraph, mapped: BLIFGraph, signal2cut: Dict[str, List[str]], signal: str
+):
     if signal in mapped.get_nodes():
         return
     if graph.is_ci(signal):
         return
     cut = signal2cut[signal]
+    assert isinstance(cut, list)
     for fanin in cut:
-        mapNodeRec(graph, mapped, signal2cut, fanin)
+        _mapNodeRec(graph, mapped, signal2cut, fanin)
 
     func = simulate(graph, signal, cut)
     mapped.create_node(signal, cut, func.sop)
 
 
-def techmap(graph: BLIFGraph, signal2cut: dict) -> BLIFGraph:
+def techmap(graph: BLIFGraph, signal2cut: Dict[str, List[str]]) -> BLIFGraph:
     newGraph = BLIFGraph()
     newGraph.top_module = graph.top_module
 
