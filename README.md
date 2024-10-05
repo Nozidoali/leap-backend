@@ -17,7 +17,11 @@ This is the backend for the LEAP project. It contains the folloinwg necessary al
 Installation
 ------------
 
-1. (**recommended**) Download backend as a submodule of the main project.
+1. (**recommended**) Use PyPI to install the latest stable version. You will need the license of Gurobi to use the MILP models.
+
+```bash
+pip install leap_backend
+```
 
 2. Install and use it elsewhere.
 
