@@ -1,0 +1,32 @@
+{
+    "dip": {
+        "array[0]": "array",
+        "array[1]": "array",
+        "array[2]": "array",
+        "array[3]": "array",
+        "array[4]": "array",
+        "array[5]": "array",
+        "indvar[0]": "indvar",
+        "indvar[1]": "indvar",
+        "indvar[2]": "indvar",
+        "indvar[3]": "indvar",
+        "mem_data[0]": "ld_finish",
+        "mem_data[1]": "ld_finish",
+        "mem_data[2]": "ld_finish",
+        "mem_data[3]": "ld_finish",
+        "mem_addr[0]": "ld_start",
+        "mem_addr[1]": "ld_start",
+        "mem_addr[2]": "ld_start",
+        "mem_addr[3]": "ld_start",
+        "mem_addr[4]": "ld_start",
+        "mem_addr[5]": "ld_start",
+        "mem_rd_en": "ld_start",
+        "result[0]": "result",
+        "result[1]": "result",
+        "result[2]": "result",
+        "result[3]": "result"
+    },
+    "cip": [
+        ["ld_finish", "ld_start", 1]
+    ]
+}

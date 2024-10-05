@@ -1,10 +1,15 @@
 from backend import *
 import json
 
+
 def main():
-    input_file = "examples/add2/add2.blif"
-    input_sched_constr = "examples/add2/add2.json"
-    output_file = "examples/add2/add2_opt.blif"
+    # input_file = "examples/add2/add2.blif"
+    # input_sched_constr = "examples/add2/add2.json"
+    # output_file = "examples/add2/add2_opt.blif"
+
+    input_file = "examples/mem/mem.blif"
+    input_sched_constr = "examples/mem/mem.json"
+    output_file = "examples/mem/mem_opt.blif"
 
     graph = read_blif(input_file)
     model = MapBufModel(graph, json.load(open(input_sched_constr)), 1, {"maxLeaves": 3})

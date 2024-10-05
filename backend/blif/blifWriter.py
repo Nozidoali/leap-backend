@@ -19,7 +19,7 @@ def write_blif_to_string(g: BLIFGraph) -> str:
     if g.top_module is None or g.top_module == "":
         g.top_module = "unknown"
 
-    blif_string += ".model " + g.top_module + "\n"
+    blif_string = ".model " + g.top_module + "\n"
     blif_string += ".inputs "
     for input in g.pis():
         blif_string += input + " "

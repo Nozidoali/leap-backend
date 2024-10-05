@@ -20,7 +20,8 @@ def _mapNodeRec(
     for fanin in cut:
         _mapNodeRec(graph, mapped, signal2cut, fanin)
 
-    func = simulate(graph, signal, cut)
+    func: BasicFunc = simulate(graph, signal, cut)
+    # print(f"signal: {signal}, cut: {cut}, func: {func}, func.sop: {func.sop}")
     mapped.create_node(signal, cut, func.sop)
 
 

@@ -14,6 +14,8 @@ class BasicFunc:
 
     @property
     def sop(self):
+        if self.n_inputs == 0:
+            return ["1" if self.value else "0"]
         return [f"{x} {self.value}" for x in self.terms]
 
     @property

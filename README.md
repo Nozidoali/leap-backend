@@ -48,3 +48,7 @@ if __name__ == "__main__":
     # subprocess.run(f"abc -c 'cec {input_file} {output_file}'", shell=True)
     subprocess.run(f"abc -c 'read {output_file}; print_stats'", shell=True)
 ```
+
+An advanced example can be found in `examples/mem`. Where:
+1. The DIP specifies `mem_addr` and `mem_rd_en` has the same label.
+2. The CIP specifies the `mem_data` arrives at least 1 cycle after `mem_addr` and `mem_rd_en`.

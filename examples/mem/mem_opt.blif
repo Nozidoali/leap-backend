@@ -1,0 +1,109 @@
+.model top
+.inputs array[0] array[1] array[2] array[3] array[4] array[5] indvar[0] indvar[1] indvar[2] indvar[3] mem_data[0] mem_data[1] mem_data[2] mem_data[3] 
+.outputs mem_addr[0] mem_addr[1] mem_addr[2] mem_addr[3] mem_addr[4] mem_addr[5] mem_rd_en result[0] result[1] result[2] result[3] 
+.latch array[0] array[0]_buffer_1 0
+.latch array[0]_buffer_1 array[0]_buffer_2 0
+.latch array[1] array[1]_buffer_1 0
+.latch array[1]_buffer_1 array[1]_buffer_2 0
+.latch array[2] array[2]_buffer_1 0
+.latch array[2]_buffer_1 array[2]_buffer_2 0
+.latch indvar[0] indvar[0]_buffer_1 0
+.latch indvar[0]_buffer_1 indvar[0]_buffer_2 0
+.latch $abc$178$new_n16 $abc$178$new_n16_buffer_1 0
+.latch $abc$178$new_n16_buffer_1 $abc$178$new_n16_buffer_2 0
+.latch $abc$178$new_n15 $abc$178$new_n15_buffer_1 0
+.latch $abc$178$new_n15_buffer_1 $abc$178$new_n15_buffer_2 0
+.latch $abc$178$new_n22 $abc$178$new_n22_buffer_1 0
+.latch $abc$178$new_n20 $abc$178$new_n20_buffer_1 0
+.latch $abc$178$new_n18 $abc$178$new_n18_buffer_1 0
+.latch $abc$178$new_n24 $abc$178$new_n24_buffer_1 0
+.latch $abc$178$new_n21 $abc$178$new_n21_buffer_1 0
+.latch indvar[3] indvar[3]_buffer_1 0
+.latch array[5] array[5]_buffer_1 0
+.latch $abc$178$new_n26 $abc$178$new_n26_buffer_1 0
+.latch $abc$178$new_n31 $abc$178$new_n31_buffer_1 0
+.latch $abc$178$new_n28 $abc$178$new_n28_buffer_1 0
+.names	$false
+0
+.names	$undef
+0
+.names	$true
+1
+.names	array[0]_buffer_2 mem_addr[0]
+1 1
+.names	array[1]_buffer_2 mem_addr[1]
+1 1
+.names	array[2]_buffer_2 indvar[0]_buffer_2 mem_addr[2]
+11 1
+00 1
+.names	indvar[0] array[2] $abc$178$new_n16
+11 1
+10 1
+00 1
+.names	array[3] indvar[0] indvar[1] $abc$178$new_n15
+111 1
+100 1
+010 1
+001 1
+.names	$abc$178$new_n16_buffer_2 $abc$178$new_n15_buffer_2 mem_addr[3]
+11 1
+00 1
+.names	array[3] indvar[0] indvar[1] $abc$178$new_n22
+111 1
+011 1
+010 1
+100 1
+001 1
+000 1
+.names	$abc$178$new_n22_buffer_1 $abc$178$new_n16_buffer_1 $abc$178$new_n15_buffer_1 $abc$178$new_n24
+111 1
+110 1
+100 1
+.names	indvar[0] indvar[1] indvar[2] $abc$178$new_n20
+111 1
+100 1
+010 1
+000 1
+.names	array[4] $abc$178$new_n18
+0 1
+.names	$abc$178$new_n20_buffer_1 $abc$178$new_n18_buffer_1 $abc$178$new_n21
+10 1
+01 1
+.names	$abc$178$new_n24_buffer_1 $abc$178$new_n21_buffer_1 mem_addr[4]
+11 1
+00 1
+.names	$abc$178$new_n20_buffer_1 $abc$178$new_n18_buffer_1 $abc$178$new_n29
+11 1
+10 1
+01 1
+.names	$abc$178$new_n21 $abc$178$new_n29 $abc$178$new_n24 $abc$178$new_n31
+111 1
+011 1
+010 1
+.names	indvar[0] indvar[1] indvar[2] $abc$178$new_n26
+110 1
+101 1
+100 1
+011 1
+010 1
+001 1
+000 1
+.names	indvar[3]_buffer_1 array[5]_buffer_1 $abc$178$new_n26_buffer_1 $abc$178$new_n28
+111 1
+100 1
+010 1
+001 1
+.names	$abc$178$new_n31_buffer_1 $abc$178$new_n28_buffer_1 mem_addr[5]
+10 1
+01 1
+.names	mem_rd_en
+1
+.names	mem_data[0] result[0]
+1 1
+.names	mem_data[1] result[1]
+1 1
+.names	mem_data[2] result[2]
+1 1
+.names	mem_data[3] result[3]
+1 1
+.end

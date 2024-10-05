@@ -7,10 +7,13 @@ from ..map import *
 from .timingModel import TimingModel
 
 
-
 class MapBufModel(TimingModel):
     def __init__(
-        self, blifGraph: BLIFGraph, schedConstraints: dict, clockPeriod: float, params: dict = {}
+        self,
+        blifGraph: BLIFGraph,
+        schedConstraints: dict,
+        clockPeriod: float,
+        params: dict = {},
     ) -> None:
         super().__init__(clockPeriod)
 
@@ -28,26 +31,32 @@ class MapBufModel(TimingModel):
         for signal, label in schedConstraints["dip"].items():
             assert signal in self.signals, f"{signal} is not in the graph"
             idx = self.signal2idx[signal]
-            
+
             if label not in self.ext2idx:
                 self.ext2idx[label] = len(self.ext2idx)
-                var = self.model.addVar(vtype=gp.GRB.INTEGER, name=f"ext_l_{self.ext2idx[label]}", lb=0)
+                var = self.model.addVar(
+                    vtype=gp.GRB.INTEGER, name=f"ext_l_{self.ext2idx[label]}", lb=0
+                )
                 self.model.update()
-        
+
             # Data integrity constraints
             # we make sure signal with the same label have the same l variable
             self.model.addConstr(self.model.getVarByName(f"l_{idx}") == var)
-        
+
         for lhs, rhs, delta in schedConstraints["cip"]:
             assert lhs in self.ext2idx, f"{lhs} is not in the external labels"
             assert rhs in self.ext2idx, f"{rhs} is not in the external labels"
             lhs_idx = self.ext2idx[lhs]
             rhs_idx = self.ext2idx[rhs]
-            
+
             # Control integrity constraints
             # we make sure the difference between two signals is larger than delta
-            self.model.addConstr(self.model.getVarByName(f"ext_l_{lhs_idx}") - self.model.getVarByName(f"ext_l_{rhs_idx}") >= delta)
-        
+            self.model.addConstr(
+                self.model.getVarByName(f"ext_l_{lhs_idx}")
+                - self.model.getVarByName(f"ext_l_{rhs_idx}")
+                >= delta
+            )
+
     def loadSubjectGraph(self, graph: BLIFGraph):
         self.graph = graph
 
