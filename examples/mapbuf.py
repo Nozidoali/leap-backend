@@ -1,21 +1,22 @@
 from backend import *
-
+import json
 
 def main():
-    # input_file = "examples/blif/const.blif"
-    input_file = "examples/adder.blif"
-    output_file = "tmp.blif"
+    input_file = "examples/add2/add2.blif"
+    input_sched_constr = "examples/add2/add2.json"
+    output_file = "examples/add2/add2_opt.blif"
 
     graph = read_blif(input_file)
-    print(f"number of nodes: {len(graph.nodes)}")
-    model = MapBufModel(graph, {}, 10000)
-    # model.dumpModel("tmp.lp")
+    model = MapBufModel(graph, json.load(open(input_sched_constr)), 1, {"maxLeaves": 3})
     model.solve()
     model.dumpGraph(output_file)
 
     import subprocess
 
-    subprocess.run(f"abc -c 'cec {input_file} {output_file}'", shell=True)
+    # CEC check works if no buffer is inserted
+    # subprocess.run(f"abc -c 'cec {input_file} {output_file}'", shell=True)
+
+    subprocess.run(f"abc -c 'read {output_file}; print_stats'", shell=True)
 
 
 if __name__ == "__main__":

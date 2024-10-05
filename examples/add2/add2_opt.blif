@@ -1,0 +1,46 @@
+.model top
+.inputs a[0] a[1] b[0] b[1] c[0] c[1] 
+.outputs out[0] out[1] out[2] out[3] 
+.latch b[0] b[0]_buffer_1 0
+.latch a[0] a[0]_buffer_1 0
+.latch c[0] c[0]_buffer_1 0
+.latch $abc$156$new_n20 $abc$156$new_n20_buffer_1 0
+.latch $abc$156$new_n17 $abc$156$new_n17_buffer_1 0
+.latch $abc$156$new_n16 $abc$156$new_n16_buffer_1 0
+.names	$false
+0
+.names	$undef
+0
+.names	$true
+1
+.names	b[0]_buffer_1 a[0]_buffer_1 c[0]_buffer_1 out[0]
+111 1
+100 1
+010 1
+001 1
+.names	b[0] c[0] a[0] $abc$156$new_n20
+100 1
+010 1
+001 1
+000 1
+.names	c[1] a[1] b[1] $abc$156$new_n17
+110 1
+101 1
+011 1
+000 1
+.names	$abc$156$new_n20_buffer_1 $abc$156$new_n17_buffer_1 out[1]
+10 1
+01 1
+.names	a[1] c[1] b[1] $abc$156$new_n16
+111 1
+110 1
+101 1
+011 1
+.names	$abc$156$new_n16_buffer_1 $abc$156$new_n20_buffer_1 $abc$156$new_n17_buffer_1 out[2]
+111 1
+110 1
+101 1
+000 1
+.names	$abc$156$new_n16_buffer_1 $abc$156$new_n20_buffer_1 $abc$156$new_n17_buffer_1 out[3]
+100 1
+.end

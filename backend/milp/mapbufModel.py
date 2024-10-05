@@ -1,14 +1,16 @@
+import gurobipy as gp
+from typing import List, Dict
+
 from ..blif import *
 from ..cute import *
 from ..map import *
 from .timingModel import TimingModel
 
-import gurobipy as gp
 
 
 class MapBufModel(TimingModel):
     def __init__(
-        self, blifGraph: BLIFGraph, dfg: dict, clockPeriod: float, params: dict = {}
+        self, blifGraph: BLIFGraph, schedConstraints: dict, clockPeriod: float, params: dict = {}
     ) -> None:
         super().__init__(clockPeriod)
 
@@ -16,12 +18,36 @@ class MapBufModel(TimingModel):
         self.wireDelay = params.get("wireDelay", 0)
         self.inputDelay = params.get("inputDelay", 0)
         self.maxLeaves = params.get("maxLeaves", 6)
-        self.loadDataflowGraph(dfg)
         self.loadSubjectGraph(blifGraph)
+        self.loadScheduabilityConstraints(schedConstraints)
 
-    def loadDataflowGraph(self, dfg):
-        self.dfg = dfg
-
+    def loadScheduabilityConstraints(self, schedConstraints: dict):
+        assert "dip" in schedConstraints, "dip is not provided"
+        assert "cip" in schedConstraints, "cip is not provided"
+        self.ext2idx: Dict[str, int] = {}
+        for signal, label in schedConstraints["dip"].items():
+            assert signal in self.signals, f"{signal} is not in the graph"
+            idx = self.signal2idx[signal]
+            
+            if label not in self.ext2idx:
+                self.ext2idx[label] = len(self.ext2idx)
+                var = self.model.addVar(vtype=gp.GRB.INTEGER, name=f"ext_l_{self.ext2idx[label]}", lb=0)
+                self.model.update()
+        
+            # Data integrity constraints
+            # we make sure signal with the same label have the same l variable
+            self.model.addConstr(self.model.getVarByName(f"l_{idx}") == var)
+        
+        for lhs, rhs, delta in schedConstraints["cip"]:
+            assert lhs in self.ext2idx, f"{lhs} is not in the external labels"
+            assert rhs in self.ext2idx, f"{rhs} is not in the external labels"
+            lhs_idx = self.ext2idx[lhs]
+            rhs_idx = self.ext2idx[rhs]
+            
+            # Control integrity constraints
+            # we make sure the difference between two signals is larger than delta
+            self.model.addConstr(self.model.getVarByName(f"ext_l_{lhs_idx}") - self.model.getVarByName(f"ext_l_{rhs_idx}") >= delta)
+        
     def loadSubjectGraph(self, graph: BLIFGraph):
         self.graph = graph
 
@@ -32,26 +58,19 @@ class MapBufModel(TimingModel):
 
         # creating constraints
         for signal in self.signals:
-            self.addTimingConstraintsAt(signal)
-            self.addCutSelectionConstraintsAt(signal)
-
-        # PO must have the same l variables
-        # TODO: this is conservative, we can relax this constraint
-        for po in graph.pos():
-            self.model.addConstr(
-                self.model.getVarByName(f"l_{self.signal2idx[po]}") == self.lVar
-            )
+            self._addTimingConstraintsAt(signal)
+            self._addCutSelectionConstraintsAt(signal)
 
         # clock period constraint
         self.model.addConstr(self.tVar <= self.clockPeriod)
 
         self._addObjective()
 
-    def createTimingLabel(self, idx: str):
+    def _createTimingLabel(self, idx: str):
         self.model.addVar(vtype=gp.GRB.INTEGER, name=f"l_{idx}", lb=0)
         self.model.addVar(vtype=gp.GRB.CONTINUOUS, name=f"t_{idx}", lb=0)
 
-    def addTimingConstraintsAt(self, signal: str):
+    def _addTimingConstraintsAt(self, signal: str):
         if self.graph.is_pi(signal):
             tIn = self.model.getVarByName(f"t_{self.signal2idx[signal]}")
             dIn = self.inputDelay
@@ -90,7 +109,7 @@ class MapBufModel(TimingModel):
                     tOut + cp * lOut + cp >= tIn + cp * lIn + cp * cutVar + dLUT
                 )
 
-    def addCutSelectionConstraintsAt(self, signal: str):
+    def _addCutSelectionConstraintsAt(self, signal: str):
         idx = self.signal2idx[signal]
         cuts = self.signal2cuts[signal]
         self.model.addConstr(
@@ -118,7 +137,7 @@ class MapBufModel(TimingModel):
         for idx, signal in enumerate(graph.topological_traversal()):
             self.signals.append(signal)
             self.signal2idx[signal] = idx
-            self.createTimingLabel(idx)
+            self._createTimingLabel(idx)
 
     def _assignCutIndex(self, graph: BLIFGraph):
         # TODO: handle the parameter of the cut enumeration
@@ -165,7 +184,6 @@ class MapBufModel(TimingModel):
 
     def dumpCuts(self):
         signal2cut = {}
-
         # check the solution, and assign the cuts
         for signal, cuts in self.signal2cuts.items():
             if self.graph.is_ci(signal):
@@ -175,7 +193,6 @@ class MapBufModel(TimingModel):
                 if self.solution[f"c_{idx}_{i}"] > 0.5:
                     signal2cut[signal] = cut
                     break
-
         return signal2cut
 
     def solve(self):

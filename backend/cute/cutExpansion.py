@@ -19,7 +19,7 @@ def expandCut(g: BLIFGraph, leaves: set, leaves_to_expand: str):
     if isinstance(leaves_to_expand, set):
         for leaf in leaves_to_expand:
             new_leaves.remove(leaf)
-            for h in g.node_fanins[leaf]:
+            for h in g.fanins(leaf):
                 new_leaves.add(h)
 
     elif isinstance(leaves_to_expand, str):
@@ -27,7 +27,7 @@ def expandCut(g: BLIFGraph, leaves: set, leaves_to_expand: str):
 
         new_leaves: set = set(list(leaves)[:])  # deep copy
         new_leaves.remove(leaf)
-        for h in g.node_fanins[leaf]:
+        for h in g.fanins(leaf):
             new_leaves.add(h)
 
     # Example:
@@ -54,13 +54,13 @@ def expandCut(g: BLIFGraph, leaves: set, leaves_to_expand: str):
     while True:
         updated = False
         for h in new_leaves:
-            if h not in g.node_fanins:
+            if not g.has_fanin(h):
                 continue
 
             # here the plus 1 is because we haven't remove h from leaves yet!
-            if len(new_leaves.union(g.node_fanins[h])) <= len(new_leaves) + 1:
+            if len(new_leaves.union(set(g.fanins(h)))) <= len(new_leaves) + 1:
                 new_leaves.remove(h)
-                new_leaves = new_leaves.union(g.node_fanins[h])
+                new_leaves = new_leaves.union(set(g.fanins(h)))
                 updated = True
                 break
         if not updated:

@@ -1,12 +1,4 @@
-#!/usr/bin/env python
-# -*- encoding=utf8 -*-
-
-"""
-Author: Hanyu Wang
-Created time: 2024-06-24 18:01:11
-Last Modified by: Hanyu Wang
-Last Modified time: 2024-06-24 18:40:38
-"""
+from typing import List, Dict
 
 from .timingLabel import *
 from .cutExpansion import *
@@ -15,8 +7,8 @@ from ..blif import *
 
 
 def cutlessEnum(graph: BLIFGraph, params: dict = {}) -> dict:
-    labels = {}
-    signal_to_cuts = {}
+    labels: Dict[str, TimingLabel] = {}
+    signal_to_cuts: Dict[str, List[str]] = {}
     maxLeaves = params.get("maxLeaves", 6)
     maxExpLevel = params.get("maxExpLevel", 2)
 
@@ -41,8 +33,8 @@ def optCutExpansion(
     graph: BLIFGraph, labels: dict, signal: str, maxLeaves: int, maxExpLevel: int
 ) -> tuple:
     optimal_timing_label = TimingLabel()
-    leaves: set = graph.fanins(signal).copy()  # deep copy
-    best_leaves: set = leaves.copy()  # deep copy
+    leaves: List[str] = graph.fanins(signal)  # deep copy
+    best_leaves: List[str] = leaves[:]  # deep copy
     curr_expansion_level = 0
 
     # we should also consider the constants
@@ -64,9 +56,7 @@ def optCutExpansion(
         if curr_expansion_level > maxExpLevel:
             break
 
-        arrival_times: list = []
-        for leaf in leaves:
-            arrival_times.append((labels[leaf], leaf))
+        arrival_times: List[tuple] = [(labels[leaf], leaf) for leaf in leaves]
         maximum_timing_label, _ = max(arrival_times)
 
         # we only update the result if the cut is valid (curr_expansion_level = 0)
@@ -77,7 +67,7 @@ def optCutExpansion(
                 best_leaves = [
                     leaf
                     for leaf in leaves
-                    if leaf not in graph.const0 and leaf not in graph.constant1s()
+                    if leaf not in graph.constant0s() and leaf not in graph.constant1s()
                 ]
 
         # can't expand further
@@ -92,7 +82,7 @@ def optCutExpansion(
         for label, leaf in arrival_times:
             if label == maximum_timing_label:
                 # the leaf is on the critical path, but we cannot expand it
-                if graph.has_fanin(leaf):
+                if not graph.has_fanin(leaf):
                     done = True
                     break
                 leaves_to_expand.add(leaf)
