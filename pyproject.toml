@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61", "wheel", "setuptools_scm", "pytest"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name="leap-backend"
+
+# read it from the file
+version = "0.1.0"
+dependencies = [
+    "gurobipy>=11.0",
+    "pygraphviz>=1.10"
+]
+requires-python = ">=3.11"
+authors = [
+  {name = "Hanyu Wang"},
+]
+description = "The backend of the LEAP framework"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["high-level synthesis", "verilog", "system verilog"]
+classifiers=[
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Repository = "https://github.com/Nozidoali/leap-backend"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

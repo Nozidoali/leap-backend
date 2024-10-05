@@ -1,2 +1,2 @@
 gurobipy==11.0.3
-pygraphviz==1.13
+pygraphviz>=1.10
