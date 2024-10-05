@@ -14,6 +14,9 @@ def main():
     graph = read_blif(input_file)
     model = MapBufModel(graph, json.load(open(input_sched_constr)), 1, {"maxLeaves": 3})
     model.solve()
+    
+    # print some stats
+    print(f"Latency: {model.getLatency()}")
     model.dumpGraph(output_file)
 
     import subprocess
@@ -21,7 +24,8 @@ def main():
     # CEC check works if no buffer is inserted
     # subprocess.run(f"abc -c 'cec {input_file} {output_file}'", shell=True)
 
-    subprocess.run(f"abc -c 'read {output_file}; print_stats'", shell=True)
+    # Verify the LUT level 
+    # subprocess.run(f"abc -c 'read {output_file}; print_stats'", shell=True)
 
 
 if __name__ == "__main__":
