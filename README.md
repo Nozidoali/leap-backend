@@ -1,7 +1,12 @@
 LEAP-Backend
 ============
+
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/Nozidoali/leap-compiler.git)
+[![PyTest](https://github.com/Nozidoali/leap-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/Nozidoali/leap-backend/actions/workflows/ci.yml)
+
 <img src="./static/leap-logo2.svg" width="64" height="64" align="left" style="margin-right: 24pt;margin-left: 12pt" />
 LEAP (Logic nEtwork-Aware Pipelining) is a framework for exploiting logic synthesis and technology mapping to improve the performance of high-level synthesis (HLS) tools. LEAP is implemented in Python and is open-source under the MIT license.
+
 
 This is the backend for the LEAP project. It contains the folloinwg necessary algorithms to process the subject graph.
 - **blif** handles the read/write of BLIF files and provides interface to manipulate the logic network.
