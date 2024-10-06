@@ -27,12 +27,12 @@ class TimingModel(BasicModel):
     def _createGlobalVariables(self):
         # global variables
         self.tVar = self.model.addVar(vtype=gp.GRB.CONTINUOUS, name="cp", lb=0)
-        self.lVar = self.model.addVar(vtype=gp.GRB.CONTINUOUS, name="latency", lb=0)
+        self.lVar = self.model.addVar(vtype=gp.GRB.INTEGER, name="latency", lb=0)
 
     def solve(self):
         super().solve()
         self.solution = {
-            signal: self.model.getVarByName(f"l_{idx}").X
+            signal: int(self.model.getVarByName(f"l_{idx}").X)
             for idx, signal in enumerate(self.signals)
         }
         self.depth = self.tVar.X

@@ -166,10 +166,9 @@ class MapBufModel(TimingModel):
             for fanin in self.graph.fanins(signal):
                 if self.solution[fanin] < label:
                     ri = fanin
-                    # self.graph.insert_buffer(fanin, signal)
-                    numCycles = int(label - self.solution[fanin])
-                    for i in range(numCycles):
-                        ro = f"{fanin}_buffer_{i+1}"
+                    # name the register usign the stage (scheduling variable)
+                    for i in range(self.solution[fanin], label):
+                        ro = f"{fanin}_stage_{i+1}"
                         if ro not in self.graph.register_outputs:
                             self.graph.create_latch(ri, ro)
                         ri = ro
