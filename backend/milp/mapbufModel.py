@@ -29,6 +29,9 @@ class MapBufModel(TimingModel):
         assert "cip" in schedConstraints, "cip is not provided"
         self.ext2idx: Dict[str, int] = {}
         for signal, label in schedConstraints["dip"].items():
+            if signal not in self.signals:
+                print(f"[WARNING] {signal} is not in the graph")
+                continue
             assert signal in self.signals, f"{signal} is not in the graph"
             idx = self.signal2idx[signal]
 
@@ -44,6 +47,13 @@ class MapBufModel(TimingModel):
             self.model.addConstr(self.model.getVarByName(f"l_{idx}") == var)
 
         for lhs, rhs, delta in schedConstraints["cip"]:
+            if lhs not in self.signals:
+                print(f"[WARNING] {lhs} is not in the graph")
+                continue
+            if rhs not in self.signals:
+                print(f"[WARNING] {rhs} is not in the graph")
+                continue
+            
             assert lhs in self.ext2idx, f"{lhs} is not in the external labels"
             assert rhs in self.ext2idx, f"{rhs} is not in the external labels"
             lhs_idx = self.ext2idx[lhs]
