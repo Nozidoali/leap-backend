@@ -178,5 +178,4 @@ abc.history
 # results files 
 *.blif
 *.sol
-*.v
-*.json
+*.lp
