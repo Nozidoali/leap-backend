@@ -3,13 +3,12 @@ requires = ["setuptools>=61", "wheel", "setuptools_scm", "pytest"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name="leap-backend"
+name="backend"
 
 # read it from the file
 version = "0.1.0"
 dependencies = [
     "gurobipy>=11.0",
-    "pygraphviz>=1.10"
 ]
 requires-python = ">=3.11"
 authors = [

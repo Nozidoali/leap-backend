@@ -1,4 +1,3 @@
-import pygraphviz as pgv
 from dataclasses import dataclass
 from typing import List
 
@@ -44,11 +43,12 @@ class DTree:
         return terms
 
     def toGraph(self, dotFile: str) -> None:
+        import pygraphviz as pgv
         graph = pgv.AGraph(strict=False, directed=True)
         self.toGraphRec(graph, self.root)
         graph.write(dotFile)
 
-    def toGraphRec(self, graph: pgv.AGraph, node: DNode) -> None:
+    def toGraphRec(self, graph: "pgv.AGraph", node: DNode) -> None:
         if isinstance(node, TNode):
             graph.add_node(str(id(node)), label="1")
         elif isinstance(node, FNode):
