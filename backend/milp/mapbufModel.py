@@ -6,7 +6,6 @@ from ..cute import *
 from ..map import *
 from .timingModel import TimingModel
 
-
 class MapBufModel(TimingModel):
     def __init__(
         self,
@@ -104,6 +103,7 @@ class MapBufModel(TimingModel):
 
     def _loadBBInfo(self, BB_info: dict):
         self.signal2bb: Dict[str, str] = {}
+        rootSignals = set()
         for bbName, bbLabels in BB_info.items():
             for label in bbLabels:
                 if label in self.ext2idx:
@@ -111,24 +111,25 @@ class MapBufModel(TimingModel):
                     assert label in self.ext2signals, f"{label} is not in the external labels"
                     for signal in self.ext2signals[label]:
                         # we assign the BB name to the signal
-                        self._pushBBNameRec(signal, bbName)
                         self.signal2bb[signal] = bbName
+                        rootSignals.add(signal)
+        
+        for signal in rootSignals:
+            self._pushBBNameRec(signal, self.signal2bb[signal], isRoot=True)
 
         # make sure all the signals are assigned
         for signal in self.signals:
             if signal not in self.signal2bb:
                 print(f"[WARNING] {signal} is not assigned to any BB")
                 self.signal2bb[signal] = "unknown"
-            self._pushBBNameRec(signal, self.signal2bb[signal])
+            else:
+                print(f"[INFO] {signal} is assigned to {self.signal2bb[signal]}")
 
-    def _pushBBNameRec(self, signal: str, BB_name: str):
+    def _pushBBNameRec(self, signal: str, BB_name: str, isRoot: bool = False):
         if self.graph.is_const0(signal) or self.graph.is_const1(signal):
             return
-        if signal in self.signal2bb:
-            if self.signal2bb[signal] != BB_name:
-                print(f"[WARNING] override {signal} from {self.signal2bb[signal]} to {BB_name}")
-            else:
-                return
+        if (not isRoot) and signal in self.signal2bb:
+            return
         self.signal2bb[signal] = BB_name
         if self.graph.is_ci(signal):
             return
