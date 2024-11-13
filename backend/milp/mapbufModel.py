@@ -111,21 +111,27 @@ class MapBufModel(TimingModel):
                     assert label in self.ext2signals, f"{label} is not in the external labels"
                     for signal in self.ext2signals[label]:
                         # we assign the BB name to the signal
-                        assert signal not in self.signal2bb, f"{signal} is already assigned to {self.signal2bb[signal]}"
+                        self._pushBBNameRec(signal, bbName)
                         self.signal2bb[signal] = bbName
-        # check if some pos are not assigned
-        for po in self.graph.pos():
-            if po not in self.signal2bb:
-                print(f"[WARNING] {po} is not assigned to any BB")
-                self.signal2bb[po] = "unknown"
-            self._pushBBNameRec(po, self.signal2bb[po])
+
+        # make sure all the signals are assigned
+        for signal in self.signals:
+            if signal not in self.signal2bb:
+                print(f"[WARNING] {signal} is not assigned to any BB")
+                self.signal2bb[signal] = "unknown"
+            self._pushBBNameRec(signal, self.signal2bb[signal])
 
     def _pushBBNameRec(self, signal: str, BB_name: str):
+        if self.graph.is_const0(signal) or self.graph.is_const1(signal):
+            return
         if signal in self.signal2bb:
             if self.signal2bb[signal] != BB_name:
-                print(f"[WARNING] {signal} is already assigned to {self.signal2bb[signal]}")
-            return
+                print(f"[WARNING] override {signal} from {self.signal2bb[signal]} to {BB_name}")
+            else:
+                return
         self.signal2bb[signal] = BB_name
+        if self.graph.is_ci(signal):
+            return
         for fanin in self.graph.fanins(signal):
             self._pushBBNameRec(fanin, BB_name)
 
