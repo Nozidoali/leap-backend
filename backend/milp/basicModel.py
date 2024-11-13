@@ -21,9 +21,9 @@ class BasicModel:
 
     def solve(self):
         self.model.optimize()
-        if self.model.status == gp.GRB.INFEASIBLE:
-            assert False, "Model is infeasible"
-        assert self.model.status == gp.GRB.OPTIMAL, "Model is not optimal"
+
+    def isInfeasible(self) -> bool:
+        return self.model.status == gp.GRB.INFEASIBLE
 
     def getDepth(self):
         raise NotImplementedError

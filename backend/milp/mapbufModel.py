@@ -21,51 +21,113 @@ class MapBufModel(TimingModel):
         self.wireDelay = params.get("wireDelay", 0)
         self.inputDelay = params.get("inputDelay", 0)
         self.maxLeaves = params.get("maxLeaves", 6)
+        self.curr_ii = params.get("ii", 1) # we initialize the II to 1
         self.loadSubjectGraph(blifGraph)
         self.loadScheduabilityConstraints(schedConstraints)
 
     def loadScheduabilityConstraints(self, schedConstraints: dict):
         assert "dip" in schedConstraints, "dip is not provided"
         assert "cip" in schedConstraints, "cip is not provided"
+        
+        # DIP
+        self._loadDIP(schedConstraints["dip"])
+
+        # CIP
+        self.cip = schedConstraints["cip"] # we store it for later
+        self._reloadCIP()
+        
+        # BB info is optional
+        if "BB_info" in schedConstraints:
+            self._loadBBInfo(schedConstraints["BB_info"])
+
+    def _loadDIP(self, dip: Dict[str, str]):
         self.ext2idx: Dict[str, int] = {}
-        for signal, label in schedConstraints["dip"].items():
+        self.ext2signals: Dict[str, List[str]] = {}
+        for signal, label in dip.items():
             if signal not in self.signals:
                 print(f"[WARNING] {signal} is not in the graph")
                 continue
             assert signal in self.signals, f"{signal} is not in the graph"
             idx = self.signal2idx[signal]
 
+            # External label
             if label not in self.ext2idx:
                 self.ext2idx[label] = len(self.ext2idx)
+                self.ext2signals[label] = []
                 var = self.model.addVar(
                     vtype=gp.GRB.INTEGER, name=f"ext_l_{self.ext2idx[label]}", lb=0
                 )
                 self.model.update()
 
+            self.ext2signals[label].append(signal)
+            
             # Data integrity constraints
             # we make sure signal with the same label have the same l variable
             self.model.addConstr(self.model.getVarByName(f"l_{idx}") == var)
 
-        for lhs, rhs, delta in schedConstraints["cip"]:
-            if lhs not in self.signals:
+    def _reloadCIP(self):
+        return
+        for lhs, rhs, delta in self.cip:
+            if lhs not in self.ext2idx:
                 print(f"[WARNING] {lhs} is not in the graph")
                 continue
-            if rhs not in self.signals:
+            if rhs not in self.ext2idx:
                 print(f"[WARNING] {rhs} is not in the graph")
                 continue
-            
+            if not isinstance(delta, int):
+                if isinstance(delta, str):
+                    if delta == "II":
+                        print(f"variable II detected, setting delta={self.curr_ii}")
+                        delta = self.curr_ii
+                    elif delta.startswith("II"):
+                        # parse the expression
+                        if "-" in delta:
+                            delta = self.curr_ii - int(delta.split("-")[1])
+                            print(f"variable II detected, setting delta={delta}")
+                        elif "+" in delta:
+                            delta = self.curr_ii + int(delta.split("+")[1])
+                            print(f"variable II detected, setting delta={delta}")
+                    else:
+                        print(f"[ERROR] {delta} is not a valid expression")
+                        raise ValueError(f"{delta} is not a valid expression")
+                    
             assert lhs in self.ext2idx, f"{lhs} is not in the external labels"
             assert rhs in self.ext2idx, f"{rhs} is not in the external labels"
-            lhs_idx = self.ext2idx[lhs]
-            rhs_idx = self.ext2idx[rhs]
+            lhs_idx, rhs_idx = self.ext2idx[lhs], self.ext2idx[rhs]
+            lVar, rVar = self.model.getVarByName(f"ext_l_{lhs_idx}"), self.model.getVarByName(f"ext_l_{rhs_idx}")
+            assert lVar is not None, f"{lhs} is not in the external labels"
+            assert rVar is not None, f"{rhs} is not in the external labels"
 
             # Control integrity constraints
             # we make sure the difference between two signals is larger than delta
-            self.model.addConstr(
-                self.model.getVarByName(f"ext_l_{lhs_idx}")
-                - self.model.getVarByName(f"ext_l_{rhs_idx}")
-                >= delta
-            )
+            self.model.addConstr(lVar - rVar >= delta)
+
+    def _loadBBInfo(self, BB_info: dict):
+        self.signal2bb: Dict[str, str] = {}
+        for bbName, bbLabels in BB_info.items():
+            for label in bbLabels:
+                if label in self.ext2idx:
+                    print(f"[INFO] {bbName} is assigned to {label}")
+                    assert label in self.ext2signals, f"{label} is not in the external labels"
+                    for signal in self.ext2signals[label]:
+                        # we assign the BB name to the signal
+                        assert signal not in self.signal2bb, f"{signal} is already assigned to {self.signal2bb[signal]}"
+                        self.signal2bb[signal] = bbName
+        # check if some pos are not assigned
+        for po in self.graph.pos():
+            if po not in self.signal2bb:
+                print(f"[WARNING] {po} is not assigned to any BB")
+                self.signal2bb[po] = "unknown"
+            self._pushBBNameRec(po, self.signal2bb[po])
+
+    def _pushBBNameRec(self, signal: str, BB_name: str):
+        if signal in self.signal2bb:
+            if self.signal2bb[signal] != BB_name:
+                print(f"[WARNING] {signal} is already assigned to {self.signal2bb[signal]}")
+            return
+        self.signal2bb[signal] = BB_name
+        for fanin in self.graph.fanins(signal):
+            self._pushBBNameRec(fanin, BB_name)
 
     def loadSubjectGraph(self, graph: BLIFGraph):
         self.graph = graph
@@ -176,9 +238,10 @@ class MapBufModel(TimingModel):
             for fanin in self.graph.fanins(signal):
                 if self.solution[fanin] < label:
                     ri = fanin
-                    # name the register usign the stage (scheduling variable)
+                    # name the register using the stage (scheduling variable)
                     for i in range(self.solution[fanin], label):
-                        ro = f"{fanin}_stage_{i+1}"
+                        BB_name = self.signal2bb.get(signal, "unknown")
+                        ro = f"{fanin}_{BB_name}_stage_{i+1}"
                         if ro not in self.graph.register_outputs:
                             self.graph.create_latch(ri, ro)
                         ri = ro
@@ -213,8 +276,15 @@ class MapBufModel(TimingModel):
                     break
         return signal2cut
 
-    def solve(self):
+    def solve(self, iterative: bool = False):
         super().solve()
+        if iterative:
+            print(f"[INFO] II={self.curr_ii}")
+            while self.isInfeasible():
+                print(f"[INFO] II={self.curr_ii} is infeasible, trying II={self.curr_ii+1}")
+                self.curr_ii += 1
+                self._reloadCIP()
+                super().solve()
 
         # we need to store the cut selection
         for signal, cuts in self.signal2cuts.items():

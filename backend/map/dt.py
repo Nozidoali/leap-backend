@@ -43,10 +43,14 @@ class DTree:
         return terms
 
     def toGraph(self, dotFile: str) -> None:
-        import pygraphviz as pgv
-        graph = pgv.AGraph(strict=False, directed=True)
-        self.toGraphRec(graph, self.root)
-        graph.write(dotFile)
+        try:
+            import pygraphviz as pgv
+            graph = pgv.AGraph(strict=False, directed=True)
+            self.toGraphRec(graph, self.root)
+            graph.write(dotFile)
+        except ImportError:
+            # we probably need to use pydot
+            raise NotImplementedError
 
     def toGraphRec(self, graph: "pgv.AGraph", node: DNode) -> None:
         if isinstance(node, TNode):

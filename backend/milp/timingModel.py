@@ -31,6 +31,10 @@ class TimingModel(BasicModel):
 
     def solve(self):
         super().solve()
+        if not self.isInfeasible():
+            self._extractSolution()
+
+    def _extractSolution(self):
         self.solution = {
             signal: int(self.model.getVarByName(f"l_{idx}").X)
             for idx, signal in enumerate(self.signals)
