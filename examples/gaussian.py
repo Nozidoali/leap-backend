@@ -10,10 +10,12 @@ def main():
     output_file = input_dir + "gaussian_opt.blif"
     lp_file = input_dir + "gaussian_opt.lp"
     solution_file = input_dir + "gaussian_opt.sol"
+    mapping_file = input_dir + "gaussian_mapping.json"
 
     graph = read_blif(input_file)
     model = MapBufModel(graph, json.load(open(input_sched_constr)), 4.2, {"maxLeaves": 6})
     
+    model.dumpIndexMapping(mapping_file)
     model.dumpModel(lp_file)
     model.solve(iterative=True)
 

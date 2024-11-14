@@ -1,5 +1,6 @@
 import gurobipy as gp
 from typing import List, Dict
+import json
 
 from ..blif import *
 from ..cute import *
@@ -282,6 +283,11 @@ class MapBufModel(TimingModel):
                     signal2cut[signal] = cut
                     break
         return signal2cut
+    
+    def dumpIndexMapping(self, filename: str):
+        mapping = {"signalMapping": self.signal2idx, "extLabelMapping": self.ext2idx}
+        with open(filename, "w") as f:
+            json.dump(mapping, f)
 
     def solve(self, iterative: bool = False):
         super().solve()
