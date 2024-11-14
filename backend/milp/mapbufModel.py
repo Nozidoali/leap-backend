@@ -285,6 +285,21 @@ class MapBufModel(TimingModel):
         return signal2cut
     
     def dumpIndexMapping(self, filename: str):
+        """
+        The dictionary is in the form of:
+        {
+            "signalMapping": {
+                "signalName": index,
+                ...
+            },
+            "extLabelMapping": {
+                "extLabel": index,
+                ...
+            }
+        }
+        the signal name's index corresponds to variables l_<index> and t_<index>
+        the external label's index corresponds to variables ext_l_<index>
+        """
         mapping = {"signalMapping": self.signal2idx, "extLabelMapping": self.ext2idx}
         with open(filename, "w") as f:
             json.dump(mapping, f)
