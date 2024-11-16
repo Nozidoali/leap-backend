@@ -231,6 +231,9 @@ class BLIFGraphBase:
 
     def create_or(self, f1: str, f2: str, name: str):
         self.create_node(name=name, fanins=[f1, f2], func=["1- 1", "-1 1"])
+        
+    def create_not(self, f1: str, name: str):
+        self.create_node(name=name, fanins=[f1], func=["0 1"])
 
     def create_buf(self, fin: str, fout: str):
         self.create_node(name=fout, fanins=[fin], func=["1 1"])

@@ -77,14 +77,12 @@ def mergeFunc(func: BasicFunc, fanins: list, verbose: bool = False) -> LUTFunc:
         for i, c in enumerate(term):
             if verbose:
                 print(f"{ttProd} & {tts[i]}", end=" ")
-
             if c == "1":
                 ttProd = ttAnd(ttProd, tts[i])
             elif c == "0":
                 ttProd = ttAnd(ttProd, ttNot(tts[i]))
             else:
                 assert c == "-"
-
             if verbose:
                 print(f"= {ttProd}")
 

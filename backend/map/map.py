@@ -21,6 +21,18 @@ def _mapNodeRec(
         _mapNodeRec(graph, mapped, signal2cut, fanin)
 
     func: BasicFunc = simulate(graph, signal, cut)
+    if len(func.sop) == 0:
+        print("-" * 80)
+        print(f"[WARNING] signal: {signal}, cut: {cut}, func: {func}, func.sop: {func.sop}")
+        print(f"[WARNING] original func: {graph.node_funcs[signal]}")
+        
+        # this is a constant 0 node
+        # therefore has no positive min terms
+        # in this case:
+        # - we remove the fanins
+        # - the function list is empty
+        cut = [] 
+        print("-" * 80)
     # print(f"signal: {signal}, cut: {cut}, func: {func}, func.sop: {func.sop}")
     mapped.create_node(signal, cut, func.sop)
 
